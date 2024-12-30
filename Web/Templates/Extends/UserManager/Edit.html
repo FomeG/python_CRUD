@@ -1,0 +1,30 @@
+{% extends "Base/base.html" %}
+
+{% block head %}
+Sửa người dùng
+{% endblock head %}
+
+{% block body %}
+<h1 class="text-center">Sửa người dùng</h1>
+<div class="container mt-3">
+    <a href="/usermanager" class="btn btn-warning mb-3">Quay trở lại</a>
+    <form action="" method="POST">
+        <div class="form-group mb-3">
+            <label for="name" class="form-label">Tên:</label>
+            <input type="text" class="form-control" name="name" id="name"  value="{{ user.name }}"  required>
+        </div>
+    
+        <div class="form-group mb-3">
+            <label for="age" class="form-label">Tuổi:</label>
+            <input type="number" class="form-control" name="age" id="age" value="{{ user.age }}" required>
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="phone" class="form-label">Số điện thoại:</label>
+            <input type="text" class="form-control" name="phone_number" id="phone" value="{{ user.phone_number }}" required>
+        </div>
+    
+        <button class="btn btn-primary" type="submit">Sửa người dùng</button>
+    </form>
+</div>
+{% endblock body %}
