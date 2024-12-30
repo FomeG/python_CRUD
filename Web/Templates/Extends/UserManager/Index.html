@@ -1,8 +1,92 @@
 {% extends "Base/base.html" %}
 
 {% block head %}
-Trang chủ
+<title>Trang chủ</title>
+<style>
+    .table {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .table thead {
+        background-color: #f8f9fa;
+    }
+
+    .table thead td {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        color: #495057;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+        transition: background-color 0.2s ease;
+    }
+
+    .btn {
+        border-radius: 6px;
+        padding: 8px 16px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-outline-warning:hover {
+        background-color: #ffc107;
+        color: #000;
+    }
+
+    .btn-outline-danger:hover {
+        background-color: #dc3545;
+        color: #fff;
+    }
+
+    .pagination {
+        margin-top: 2rem;
+        gap: 5px;
+    }
+
+    .pagination .page-link {
+        border-radius: 4px;
+        padding: 8px 16px;
+        color: #495057;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+    .form-control {
+        border-radius: 6px;
+        padding: 10px 15px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-control:focus {
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    h1 {
+        color: #2c3e50;
+        margin-bottom: 2rem;
+        font-weight: 600;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border: none;
+        box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+        transform: translateY(-1px);
+    }
+</style>
 {% endblock head %}
+
+
 
 {% block body %}
 
@@ -11,42 +95,68 @@ Trang chủ
     {% if current_user.role_id == 1 %}
         <a href="/usermanager/add" class="btn btn-primary mb-3">Thêm</a>
     {% endif %}
-    <input type="text" id="searchInput" class="form-control mb-3" placeholder="Tìm kiếm...">
+    <input type="text" id="searchInput" class="form-control mb-3" placeholder="Searching . . .">
 </div>
 
 
-<table class="table table-hover table-bordered"  style="table-layout: fixed;">
-    
+<table class="table table-hover table-bordered">
     <thead class="text-center">
         <tr>
             <td>STT</td>
-            <td>Tên</td>
-            <!-- <td>Tài khoản</td> -->
-            <!-- <td>Mật khẩu</td> -->
-            <td>SĐT</td>
-            <td>Quyền</td>
-            <td>Thao tác</td>
+            <td>Name</td>
+            <td>Phone Number</td>
+            <td>Role</td>
+            <td>Actions</td>
         </tr>
     </thead>
-    <tbody id="results">
-        {% for user in ds %}
+    <tbody>
+        {% for user in ds.items %}
             <tr>
-                <td class="text-center">{{ loop.index }}</td>
+                <td class="text-center">{{ loop.index + (ds.page - 1) * ds.per_page }}</td>
                 <td>{{ user.name }}</td>
-                <!-- <td>{{ user.username }}</td> --> 
-                <!-- <td>{{ user.password }}</td> --> 
                 <td>{{ user.phone_number }}</td>
-                <td>{{ user.role.name if user.role else 'Chưa có quyền' }}</td>
+                <td>{{ user.role.name if user.role else 'No role' }}</td>
                 <td class="text-center">
-                    {% if current_user.role_id == 1 %}
-                        <a href="/usermanager/edit/{{user.id}}" class="btn btn-outline-warning">Sửa</a>
-                        <a href="/delete/{{user.id}}" class="btn btn-outline-danger">Xoá</a>
+                    {% if current_user.is_authenticated %}
+                        {% if current_user.role_id == 1 %}
+                            <a href="/usermanager/edit/{{ user.id }}" class="btn btn-outline-warning">Edit</a>
+                            <a href="/delete/{{ user.id }}" class="btn btn-outline-danger">Delete</a>
+                        {% endif %}
                     {% endif %}
                 </td>
             </tr>
         {% endfor %}
     </tbody>
 </table>
+
+<!-- Pagination Controls -->
+<div class="text-center">
+    <ul class="pagination">
+        {% if ds.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('main.usermanager', page=ds.prev_num) }}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+        {% endif %}
+        
+        {% for page_num in range(1, ds.pages + 1) %}
+            <li class="page-item {% if page_num == ds.page %} active {% endif %}">
+                <a class="page-link" href="{{ url_for('main.usermanager', page=page_num) }}">{{ page_num }}</a>
+            </li>
+        {% endfor %}
+        
+        {% if ds.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('main.usermanager', page=ds.next_num) }}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+</div>
+
+
 
 <script>
     document.getElementById('searchInput').addEventListener('input', function() {

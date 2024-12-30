@@ -5,6 +5,8 @@ from Web import db
 from Web.Models.Users import User
 from functools import wraps
 
+from flask_sqlalchemy import pagination
+
 main = Blueprint('main', __name__)
 
 def admin_required(f):
@@ -21,15 +23,43 @@ def home():
     return render_template('Extends/home.html')
 
 
+
 @main.route('/usermanager')
 @login_required
 def usermanager():
-    # Lấy danh sách người dùng và truyền vào template
-    listUser, error = get_all_users()
-    if error:
-        print('Có lỗi xảy ra khi lấy danh sách người dùng!', error)
-        return "Lỗi khi lấy danh sách người dùng"
+    # Get the page number from the query string (defaults to 1 if not provided)
+    page = request.args.get('page', 1, type=int)
+    
+    # Define how many items per page (e.g., 10 users per page)
+    per_page = 10
+    
+    # Query users with pagination
+    listUser = User.query.order_by(User.created_at).paginate(page=page, per_page=per_page, error_out=False)
+    
+    # Return the template with paginated data
     return render_template('Extends/UserManager/index.html', ds=listUser)
+
+
+@main.route('/usermanager/search')
+@login_required
+def usermanager_search():
+    # Get the page number from the query string (defaults to 1 if not provided)
+    page = request.args.get('page', 1, type=int)
+    
+    # Define how many items per page (e.g., 10 users per page)
+    per_page = 10
+    
+    query = request.args.get('q', '').lower()
+    
+    listUser = User.query.filter(
+        (User.name.ilike(f"%{query}%")) | 
+        (User.phone_number.ilike(f"%{query}%"))
+    ).paginate(page=page, per_page=per_page, error_out=False)  # Filter users
+    
+    # Render a partial template with filtered data
+    return render_template('Extends/UserManager/UserList.html', users=listUser)
+
+
 
 
 @main.route('/usermanager/add', methods=['POST', 'GET'])
@@ -98,14 +128,4 @@ def usermanager_delete(id):
 
 
 
-@main.route('/usermanager/search')
-@login_required
-def usermanager_search():
-    query = request.args.get('q', '').lower()
-    users = User.query.filter(
-        (User.name.ilike(f"%{query}%")) | 
-        (User.phone_number.ilike(f"%{query}%"))
-    ).order_by(User.created_at).all()  # Filter users
-    
-    # Render a partial template with filtered data
-    return render_template('Extends/UserManager/UserList.html', users=users)
+
