@@ -6,44 +6,63 @@ Trang chủ
 
 {% block body %}
 
-<h1 class="text-center">Quản lý người dùng</h1>
-<div class="container mt-3">
-    <a href="/usermanager/add" class="btn btn-primary mb-3">Thêm</a>
-    <table class="table table-hover table-bordered">
-        
-        <thead class="text-center">
-            <tr>
-                <td>STT</td>
-                <td>Tên</td>
-                <td>Tài khoản</td>
-                <td>Mật khẩu</td>
-                <td>SĐT</td>
-                <td>Quyền</td>
-                <td>Thao tác</td>
-            </tr>
-        </thead>
-
-        <tbody>
-            {% for user in ds %}
-                <tr>
-                    <td class="text-center">{{ loop.index }}</td>
-                    <td>{{ user.name }}</td>
-                    <td>{{ user.username }}</td>
-                    <td>{{ user.password }}</td>
-                    <td>{{ user.phone_number }}</td>
-                    <td>{{ user.role.name if user.role else 'Chưa có quyền' }}</td>
-                    <td class="text-center">
-                        {% if current_user.is_authenticated %}
-                            {% if current_user.role_id == 1 %}
-                                <a href="/usermanager/edit/{{user.id}}" class="btn btn-outline-warning">Sửa</a>
-                                <a href="/delete/{{user.id}}" class="btn btn-outline-danger">Xoá</a>
-                            {% endif %}
-                    {% endif %}
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<h1 class="text-center">User managerment</h1>
+<div class="d-flex justify-content-between align-items-center" style="gap: 20px;">
+    {% if current_user.role_id == 1 %}
+        <a href="/usermanager/add" class="btn btn-primary mb-3">Thêm</a>
+    {% endif %}
+    <input type="text" id="searchInput" class="form-control mb-3" placeholder="Tìm kiếm...">
 </div>
+
+
+<table class="table table-hover table-bordered"  style="table-layout: fixed;">
+    
+    <thead class="text-center">
+        <tr>
+            <td>STT</td>
+            <td>Tên</td>
+            <!-- <td>Tài khoản</td> -->
+            <!-- <td>Mật khẩu</td> -->
+            <td>SĐT</td>
+            <td>Quyền</td>
+            <td>Thao tác</td>
+        </tr>
+    </thead>
+    <tbody id="results">
+        {% for user in ds %}
+            <tr>
+                <td class="text-center">{{ loop.index }}</td>
+                <td>{{ user.name }}</td>
+                <!-- <td>{{ user.username }}</td> --> 
+                <!-- <td>{{ user.password }}</td> --> 
+                <td>{{ user.phone_number }}</td>
+                <td>{{ user.role.name if user.role else 'Chưa có quyền' }}</td>
+                <td class="text-center">
+                    {% if current_user.role_id == 1 %}
+                        <a href="/usermanager/edit/{{user.id}}" class="btn btn-outline-warning">Sửa</a>
+                        <a href="/delete/{{user.id}}" class="btn btn-outline-danger">Xoá</a>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+    document.getElementById('searchInput').addEventListener('input', function() {
+        const query = this.value;
+
+        fetch(`/usermanager/search?q=${query}`)
+            .then(response => response.text()) // Get the HTML response as text
+            .then(data => {
+                document.getElementById('results').innerHTML = data; // Replace table body with new rows
+            });
+    });
+</script>
+
+
+
+
+
 
 {% endblock body %}

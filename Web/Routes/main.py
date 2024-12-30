@@ -1,4 +1,4 @@
-from flask import request, render_template, redirect, url_for, Blueprint, abort
+from flask import jsonify, request, render_template, redirect, url_for, Blueprint, abort
 from flask_login import login_required, current_user
 from Web.Services.CRUDMethods import create_user, get_all_users, update_user, delete_user
 from Web import db
@@ -10,8 +10,8 @@ main = Blueprint('main', __name__)
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or current_user.role_id != 1:  # Giả sử role_id 1 là admin
-            abort(403)
+        if not current_user.is_authenticated or current_user.role_id != 1:  # role_id 1 là admin
+            return "Bạn không có quyền truy cập trang này!"
         return f(*args, **kwargs)
     return decorated_function
 
@@ -95,3 +95,17 @@ def usermanager_delete(id):
         return "Có lỗi xảy ra khi xóa người dùng!"
     
     return redirect('/usermanager')
+
+
+
+@main.route('/usermanager/search')
+@login_required
+def usermanager_search():
+    query = request.args.get('q', '').lower()
+    users = User.query.filter(
+        (User.name.ilike(f"%{query}%")) | 
+        (User.phone_number.ilike(f"%{query}%"))
+    ).order_by(User.created_at).all()  # Filter users
+    
+    # Render a partial template with filtered data
+    return render_template('Extends/UserManager/UserList.html', users=users)
